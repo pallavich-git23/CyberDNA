@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}CyberDNA | Secure Access{% endblock %}{% block auth_content %}
+<div class="login-page"><div class="login-glow"></div><div class="login-brand"><span class="brand-mark large">⌘</span><span>Cyber<span class="accent">DNA</span><small>THREAT ANALYTICS PLATFORM</small></span></div>
+<div class="login-card"><div class="eyebrow"><i class="status-dot"></i> SECURE ACCESS</div><h1>Welcome back</h1><p class="muted">Sign in to access your security workspace.</p>
+{% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}
+<form method="post" class="form-stack"><label>Username</label><input name="username" placeholder="Enter username" autocomplete="username" required><label>Password</label><input type="password" name="password" placeholder="Enter password" autocomplete="current-password" required><button class="btn primary full" type="submit">Sign in to CyberDNA <span>→</span></button></form>
+<div class="demo-credentials"><b>DEMO ACCESS</b><span>Username: <code>cyberdna</code></span><span>Password: <code>CyberDNA@123</code></span></div></div><div class="login-footer">ENCRYPTED WORKSPACE <span>•</span> SECURITY MONITORING CONSOLE</div></div>{% endblock %}

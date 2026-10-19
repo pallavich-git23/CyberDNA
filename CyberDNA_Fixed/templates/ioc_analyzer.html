@@ -1,0 +1,202 @@
+
+{% extends "base.html" %}
+
+{% block title %}CyberDNA | IOC Analyzer{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <div class="eyebrow">INDICATOR INVESTIGATION</div>
+        <h1>IOC Analyzer</h1>
+        <p class="muted">
+            Validate and inspect indicators of compromise locally.
+        </p>
+    </div>
+    <span class="range-chip">LOCAL ANALYSIS</span>
+</div>
+
+<div class="notice" style="padding:14px; margin-bottom:20px; border-radius:8px;">
+    <strong>Analysis limitation:</strong>
+    Results use local format validation and simple heuristics.
+    No live threat-intelligence service is queried.
+</div>
+
+<section class="panel" style="padding:22px; margin-bottom:20px;">
+    <div class="panel-heading">
+        <div>
+            <h2>Analyze an indicator</h2>
+            <p>Enter an IP address, URL, domain, or file hash.</p>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('ioc_analyzer') }}">
+        <label for="ioc-input">Indicator value</label>
+
+        <input
+            id="ioc-input"
+            name="ioc"
+            type="text"
+            maxlength="2048"
+            required
+            value="{{ submitted_ioc }}"
+            placeholder="Example: https://example.com/login"
+            style="width:100%; box-sizing:border-box; margin:10px 0 14px; padding:13px;"
+        >
+
+        <button type="submit" class="btn btn-primary">
+            Analyze Indicator
+        </button>
+    </form>
+
+    <div style="margin-top:16px;">
+        <p class="muted">Try a safe example:</p>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <button type="button" class="btn"
+                onclick="document.getElementById('ioc-input').value='192.168.1.1'">
+                Private IP
+            </button>
+            <button type="button" class="btn"
+                onclick="document.getElementById('ioc-input').value='https://example.com/login'">
+                URL
+            </button>
+            <button type="button" class="btn"
+                onclick="document.getElementById('ioc-input').value='example.com'">
+                Domain
+            </button>
+            <button type="button" class="btn"
+                onclick="document.getElementById('ioc-input').value='d41d8cd98f00b204e9800998ecf8427e'">
+                MD5 example
+            </button>
+        </div>
+    </div>
+</section>
+
+{% if error %}
+    <div class="notice" style="padding:14px; margin-bottom:20px;">
+        {{ error }}
+    </div>
+{% endif %}
+
+{% if result %}
+<section class="panel" style="padding:22px; margin-bottom:20px;">
+    <div class="panel-heading">
+        <div>
+            <h2>Analysis results</h2>
+            <p>Review the classification and findings below.</p>
+        </div>
+        <span class="risk-badge
+            {% if result.risk == 'High' %}high
+            {% elif result.risk == 'Medium' %}medium
+            {% elif result.risk == 'Low' %}low
+            {% endif %}">
+            {{ result.risk }}
+        </span>
+    </div>
+
+    <div class="stats-grid">
+        <article class="stat-card">
+            <div class="stat-top"><span>Indicator type</span></div>
+            <div class="stat-number" style="font-size:22px;">
+                {{ result.ioc_type }}
+            </div>
+        </article>
+
+        <article class="stat-card">
+            <div class="stat-top"><span>Heuristic score</span></div>
+            <div class="stat-number">
+                {% if result.score is not none %}
+                    {{ result.score }}<span style="font-size:16px;">/100</span>
+                {% else %}
+                    —
+                {% endif %}
+            </div>
+        </article>
+
+        <article class="stat-card">
+            <div class="stat-top"><span>Format validation</span></div>
+            <div class="stat-number" style="font-size:22px;">
+                {{ "Valid" if result.valid else "Invalid" }}
+            </div>
+        </article>
+    </div>
+
+    <div style="margin-top:20px;">
+        <p class="muted">Submitted indicator</p>
+        <code style="overflow-wrap:anywhere;">{{ result.ioc }}</code>
+    </div>
+
+    <h3 style="margin-top:22px;">Findings</h3>
+    <ul>
+        {% for finding in result.findings %}
+            <li style="margin:10px 0;">{{ finding }}</li>
+        {% endfor %}
+    </ul>
+
+    <p class="muted" style="margin-top:18px;">
+        A low score does not prove safety, and an unverified indicator
+        has not been checked against a threat-intelligence database.
+    </p>
+</section>
+{% endif %}
+
+
+<section class="panel table-panel ioc-history-panel">
+    <div class="panel-heading">
+        <div>
+            <h2>Recent IOC Analyses</h2>
+            <p>Last 10 submissions saved in the local database.</p>
+        </div>
+    </div>
+
+    <div class="ioc-table-container">
+        <table class="ioc-history-table">
+            <thead>
+                <tr>
+                    <th>Indicator</th>
+                    <th>Type</th>
+                    <th>Assessment</th>
+                    <th>Score</th>
+                    <th>Analyzed At</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in history %}
+                <tr>
+                    <td class="ioc-value" title="{{ item['ioc'] }}">
+                        <span>{{ item["ioc"] }}</span>
+                    </td>
+
+                    <td>{{ item["ioc_type"] }}</td>
+
+                    <td>
+                        <span class="risk-badge
+                            {% if item['risk'] == 'High' %}high
+                            {% elif item['risk'] == 'Medium' %}medium
+                            {% elif item['risk'] == 'Low' %}low
+                            {% endif %}">
+                            {{ item["risk"] }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ item["score"] if item["score"] is not none else "—" }}
+                    </td>
+
+                    <td class="ioc-date">
+                        {{ item["created_at"] }}
+                    </td>
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        No IOC analyses yet. Submit an indicator to begin.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

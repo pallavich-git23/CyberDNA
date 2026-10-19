@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% block title %}CyberDNA | Dashboard{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">SECURITY OVERVIEW <span class="live-pill"><i></i> LIVE</span></div><h1>Dashboard</h1><p class="muted">Monitor your security posture and analyze potential threats.</p></div><a class="btn primary" href="{{ url_for('scan') }}">＋ New security scan</a></div>
+<div class="stats-grid">
+{% for key,label,icon,color,caption in [('total','Total scans','⌕','cyan','Recorded analyses'),('high','High risk','⚠','red','Requires attention'),('medium','Medium risk','◈','amber','Needs review'),('low','Low risk','✓','green','Lower priority')] %}
+<article class="stat-card"><div class="stat-top"><span>{{ label }}</span><span class="stat-icon {{ color }}">{{ icon }}</span></div><div class="stat-number">{{ counts[key] }}</div><div class="stat-bottom"><span>{{ caption }}</span><span class="trend {{ color }}-text">{{ 'All time' if key=='total' else label }}</span></div><div class="stat-line {{ color }}-line"></div></article>
+{% endfor %}</div>
+<div class="dashboard-grid"><section class="panel chart-panel"><div class="panel-heading"><div><h2>Threat distribution</h2><p>Breakdown by assessed risk level</p></div><span class="panel-menu">•••</span></div><div class="donut-wrap"><canvas id="severityChart"></canvas><div class="donut-center"><b>{{ counts.total }}</b><span>Total scans</span></div></div><div class="chart-legend"><span><i class="legend-dot red-bg"></i>High <b>{{ counts.high }}</b></span><span><i class="legend-dot amber-bg"></i>Medium <b>{{ counts.medium }}</b></span><span><i class="legend-dot green-bg"></i>Low <b>{{ counts.low }}</b></span></div></section>
+<section class="panel chart-panel"><div class="panel-heading"><div><h2>Scan activity</h2><p>Recorded scan volume over time</p></div><span class="range-chip">Recent activity</span></div><div class="activity-chart"><canvas id="activityChart"></canvas></div><div class="chart-foot"><span><i class="legend-dot cyan-bg"></i> Completed scans</span><span>Live scan history</span></div></section></div>
+<div class="dashboard-grid lower-grid"><section class="panel table-panel"><div class="panel-heading"><div><h2>Recent scans</h2><p>Latest indicator analyses</p></div><a class="text-link" href="{{ url_for('history') }}">View history →</a></div><div class="table-scroll"><table><thead><tr><th>Target / indicator</th><th>Type</th><th>Risk level</th><th>Timestamp</th></tr></thead><tbody>
+{% for scan in scans %}<tr><td><div class="target-cell"><span class="target-icon">⌘</span><span><b>{{ scan['target'] }}</b><small>{{ scan['finding'] }}</small></span></div></td><td>{{ scan['scan_type'] }}</td><td><span class="risk-badge {{ scan['risk']|lower }}">{{ scan['risk'] }}</span></td><td class="date-cell">{{ scan['created_at'] }}</td></tr>{% else %}<tr><td colspan="4" class="empty-state">No scans yet. Run your first scan.</td></tr>{% endfor %}
+</tbody></table></div></section><section class="panel quick-panel"><div class="panel-heading"><div><h2>Quick actions</h2><p>Common security workflows</p></div></div><div class="quick-actions">
+<a href="{{ url_for('scan') }}"><span class="quick-icon cyan">⌕</span><span><b>Run security scan</b><small>Analyze a URL, IP, domain or file</small></span><strong>→</strong></a>
+<a href="{{ url_for('ioc_analyzer') }}"><span class="quick-icon purple">⌘</span><span><b>Analyze an IOC</b><small>Inspect an indicator of compromise</small></span><strong>→</strong></a>
+<a href="{{ url_for('reports') }}"><span class="quick-icon green">▤</span><span><b>View reports</b><small>Review scan summaries</small></span><strong>→</strong></a>
+<a href="{{ url_for('threat_intelligence') }}"><span class="quick-icon amber">◈</span><span><b>Threat intelligence</b><small>Explore investigation guidance</small></span><strong>→</strong></a></div></section></div>
+
+<script id="chart-data" type="application/json">
+{{ {
+    'high': counts.high,
+    'medium': counts.medium,
+    'low': counts.low,
+    'days': daily_labels,
+    'totals': daily_totals
+} | tojson }}
+</script>
+{% endblock %}

@@ -1,0 +1,92 @@
+
+{% extends "base.html" %}
+
+{% block title %}CyberDNA | Threat Intelligence{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <div class="eyebrow">THREAT MONITORING</div>
+        <h1>Threat Intelligence</h1>
+        <p class="muted">
+            Investigate indicators and review threat intelligence records.
+        </p>
+    </div>
+    <span class="range-chip">DEMO MODE</span>
+</div>
+
+<div class="notice" style="margin-bottom: 20px; padding: 14px; border-radius: 8px;">
+    <strong>Demo data:</strong>
+    These are sample records for testing the CyberDNA interface.
+    They are not live malicious IP addresses or verified threat reports.
+</div>
+
+<div class="stats-grid">
+    <article class="stat-card">
+        <div class="stat-top"><span>Sample indicators</span></div>
+        <div class="stat-number">{{ threats|length }}</div>
+        <div class="stat-bottom"><span>Example records</span></div>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-top"><span>High confidence</span></div>
+        <div class="stat-number">
+            {{ threats|selectattr("abuseConfidenceScore", "ge", 90)|list|length }}
+        </div>
+        <div class="stat-bottom"><span>Score of 90% or higher</span></div>
+    </article>
+</div>
+
+<section class="panel table-panel" style="margin-top: 20px;">
+    <div class="panel-heading">
+        <div>
+            <h2>Threat indicator feed</h2>
+            <p>Sample IP reputation records</p>
+        </div>
+    </div>
+
+    <div class="table-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>IP Address</th>
+                    <th>Confidence Score</th>
+                    <th>Reports</th>
+                    <th>Country</th>
+                    <th>Usage Type</th>
+                    <th>Last Reported</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for threat in threats %}
+                <tr>
+                    <td><b>{{ threat.get("ipAddress", "N/A") }}</b></td>
+                    <td>
+                        <span class="risk-badge
+                            {% if threat.get('abuseConfidenceScore', 0) >= 90 %}
+                                high
+                            {% elif threat.get('abuseConfidenceScore', 0) >= 60 %}
+                                medium
+                            {% else %}
+                                low
+                            {% endif %}">
+                            {{ threat.get("abuseConfidenceScore", 0) }}%
+                        </span>
+                    </td>
+                    <td>{{ threat.get("totalReports", 0) }}</td>
+                    <td>{{ threat.get("countryCode", "Unknown") }}</td>
+                    <td>{{ threat.get("usageType", "Unknown") }}</td>
+                    <td>{{ threat.get("lastReportedAt", "Unknown") }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        No sample records available.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
